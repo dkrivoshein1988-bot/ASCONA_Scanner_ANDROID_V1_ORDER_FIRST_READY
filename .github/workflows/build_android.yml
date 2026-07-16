@@ -18,6 +18,7 @@ jobs:
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
+          flutter-version: '3.41.0'
           channel: stable
 
       - name: Generate Android platform
@@ -34,10 +35,7 @@ jobs:
           if permission not in text:
               insert_at = text.find(">") + 1
               text = text[:insert_at] + f"\n    {permission}" + text[insert_at:]
-          text = text.replace(
-              'android:label="ascona_returns_scanner"',
-              'android:label="ASCONA Scanner"',
-          )
+          text = text.replace('android:label="ascona_returns_scanner"', 'android:label="ASCONA Scanner"')
           manifest.write_text(text, encoding="utf-8")
           PY
 
@@ -46,17 +44,11 @@ jobs:
         run: |
           python3 - <<'PY'
           from pathlib import Path
-          for path in [
-              Path("android/app/build.gradle"),
-              Path("android/app/build.gradle.kts"),
-          ]:
+          for path in [Path("android/app/build.gradle"), Path("android/app/build.gradle.kts")]:
               if not path.exists():
                   continue
               text = path.read_text(encoding="utf-8")
-              text = text.replace(
-                  "minSdkVersion flutter.minSdkVersion",
-                  "minSdkVersion 23",
-              )
+              text = text.replace("minSdkVersion flutter.minSdkVersion", "minSdkVersion 23")
               text = text.replace("minSdk = flutter.minSdkVersion", "minSdk = 23")
               path.write_text(text, encoding="utf-8")
           PY
