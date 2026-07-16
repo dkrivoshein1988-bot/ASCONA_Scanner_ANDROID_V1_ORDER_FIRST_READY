@@ -868,7 +868,7 @@ class _ReturnsHomePageState extends State<ReturnsHomePage> {
               children: [
                 const Row(
                   children: [
-                    Icon(Icons.database_outlined),
+                    Icon(Icons.storage_outlined),
                     SizedBox(width: 10),
                     Text(
                       'Локальный справочник',
