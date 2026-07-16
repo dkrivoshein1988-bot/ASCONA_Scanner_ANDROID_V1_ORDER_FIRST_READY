@@ -1,7 +1,7 @@
 name: ascona_returns_scanner
 description: ASCONA Scanner for marketplace returns processing.
 publish_to: "none"
-version: 1.0.0+10
+version: 1.0.1+11
 
 environment:
   sdk: ">=3.7.0 <4.0.0"
@@ -10,7 +10,7 @@ dependencies:
   flutter:
     sdk: flutter
   cupertino_icons: ^1.0.8
-  mobile_scanner: 7.2.0
+  mobile_scanner: 7.2.1
   path: ^1.9.1
   path_provider: ^2.1.4
   share_plus: ^10.0.2
