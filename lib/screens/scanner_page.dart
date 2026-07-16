@@ -24,10 +24,7 @@ class _ScannerPageState extends State<ScannerPage> {
     super.initState();
     _controller = MobileScannerController(
       autoStart: true,
-      autoZoom: true,
-      cameraResolution: const Size(1280, 720),
       detectionSpeed: DetectionSpeed.noDuplicates,
-      detectionTimeoutMs: 350,
       facing: CameraFacing.back,
       formats: const [
         BarcodeFormat.ean13,
@@ -68,6 +65,20 @@ class _ScannerPageState extends State<ScannerPage> {
     if (mounted) Navigator.pop(context, value);
   }
 
+  Future<void> _restartCamera() async {
+    try {
+      await _controller.stop();
+    } on Object {
+      // The controller can already be stopped after an initialization error.
+    }
+    if (!mounted) return;
+    try {
+      await _controller.start();
+    } on Object {
+      // The scanner error builder displays the native error details.
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -100,7 +111,10 @@ class _ScannerPageState extends State<ScannerPage> {
                 scanWindow: scanWindow,
                 tapToFocus: true,
                 onDetect: _onDetect,
-                errorBuilder: (context, error) => _CameraError(error: error),
+                errorBuilder: (context, error) => _CameraError(
+                  error: error,
+                  onRetry: _restartCamera,
+                ),
               ),
               _ScannerOverlay(scanWindow: scanWindow),
               Align(
@@ -177,12 +191,21 @@ class _ScannerOverlay extends StatelessWidget {
 }
 
 class _CameraError extends StatelessWidget {
-  const _CameraError({required this.error});
+  const _CameraError({required this.error, required this.onRetry});
 
   final MobileScannerException error;
+  final VoidCallback onRetry;
 
   @override
   Widget build(BuildContext context) {
+    final detailCode = error.errorDetails?.code;
+    final detailMessage = error.errorDetails?.message;
+    final technicalDetails = <String>[
+      error.errorCode.name,
+      if (detailCode != null && detailCode.isNotEmpty) detailCode,
+      if (detailMessage != null && detailMessage.isNotEmpty) detailMessage,
+    ].join('\n');
+
     return ColoredBox(
       color: const Color(0xFF101828),
       child: Center(
@@ -207,14 +230,21 @@ class _CameraError extends StatelessWidget {
               ),
               const SizedBox(height: 8),
               const Text(
-                'Разрешите доступ к камере в настройках Android или используйте ручной ввод/сканер ТСД.',
+                'Не удалось запустить модуль сканирования. Закройте другие приложения, использующие камеру, и нажмите «Повторить».',
                 textAlign: TextAlign.center,
                 style: TextStyle(color: Colors.white70),
               ),
               const SizedBox(height: 12),
               Text(
-                error.errorCode.name,
+                technicalDetails,
+                textAlign: TextAlign.center,
                 style: const TextStyle(color: Colors.white54, fontSize: 12),
+              ),
+              const SizedBox(height: 16),
+              FilledButton.icon(
+                onPressed: onRetry,
+                icon: const Icon(Icons.refresh),
+                label: const Text('Повторить'),
               ),
             ],
           ),
